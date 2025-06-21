@@ -34,11 +34,11 @@ down:
 
 sudo:
 	@echo ">>> Veränder Zugriffsrechte für volumes..."
-	sudo chown $(id -u):$(id -g) ~/Documents/dabi2/packages/prefect/dbt_setup/dev.duckdb
-	sudo chown $(id -u):$(id -g) ~/Documents/dabi2/.venv
+	sudo chown $(id -u):$(id -g) ./dbt_setup/dev.duckdb
+	sudo chown $(id -u):$(id -g) ./.venv
 
 dbt-docs:
 	@echo ">>> Generiere dbt-Dokumentation..."
-	sudo chown -R $(id -u):$(id -g) src/prefect/dbt_setup
+	sudo chown -R $(id -u):$(id -g) dbt_setup
 	cd packages/prefect && uv run dbt docs generate --project-dir ./dbt_setup/
 	cd packages/prefect && uv run dbt docs serve --project-dir ./dbt_setup/ --port 8002

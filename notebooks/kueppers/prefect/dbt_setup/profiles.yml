@@ -3,4 +3,4 @@ dbt_setup:
   outputs:
     dev:
       type: duckdb
-      path: /app/dbt_setup/dev.duckdb
+      path: dev.duckdb

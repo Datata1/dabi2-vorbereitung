@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: rohdaten 
+    tables:
+      - name: kunden 
+        meta:
+          external_location: "read_csv('./data/raw_kunden.csv')"
