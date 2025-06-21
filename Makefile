@@ -2,9 +2,9 @@ KERNEL_NAME := dabi2-test
 
 .PHONY: all
 
-all: init 
+all: init kernel
 
-init: kernel
+init: 
 	@uv sync 
 
 kernel: 
