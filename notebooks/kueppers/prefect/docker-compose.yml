@@ -1,0 +1,71 @@
+# docker-compose.yaml
+version: '3.8' 
+
+services:
+  db:  # do we need some special extension?
+    image: timescale/timescaledb:latest-pg16 
+    container_name: dabi2-test
+    environment:
+      POSTGRES_USER: ${DB_USER:-datata1}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
+      POSTGRES_DB: ${DB_NAME:-oltp}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    command: postgres -c wal_level=logical
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  prefect:
+    container_name: prefect_server_test
+    image: prefecthq/prefect:3-latest 
+    command: prefect server start --host 0.0.0.0
+    environment:
+      - PREFECT_SERVER_DATABASE_CONNECTION_URL=postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${PREFECT_DB_NAME}
+      - PREFECT_API_URL=http://0.0.0.0:4200/api
+      - PREFECT_UI_SERVE_BASE=/prefect
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+
+  prefect-worker:
+    container_name: prefect_worker_test
+    build:
+      context: . 
+      dockerfile: Dockerfile
+    volumes:
+      - ./dbt_setup:/app/dbt_setup
+      - ../../../uv.lock:/app/uv.lock
+    working_dir: /app
+    command: "uv run run_worker.py"
+    environment:
+      - PREFECT_API_URL=http://prefect:4200/api
+      - DATABASE_URL_PREFECT=postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${PREFECT_DB_NAME}
+      - PREFECT_WORKER_WEBSERVER_PORT=8001
+      - PG_DWH_HOST=db
+      - PG_DWH_PORT=${DB_PORT:-5432}
+      - PG_DWH_USER=${DB_USER:-datata1}
+      - PG_DWH_PASSWORD=${DB_PASSWORD:-devpassword}
+      - PG_DWH_DBNAME=${DB_NAME:-dwh_dabi}
+      - DBT_PROJECT_DIR=/app/dbt_setup
+      - DBT_PROFILES_DIR=/app/dbt_setup
+    depends_on:
+      prefect:
+        condition: service_started
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+
+
+
+volumes:
+  postgres_data:

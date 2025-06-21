@@ -1,0 +1,6 @@
+dbt_setup:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: /app/dbt_setup/dev.duckdb

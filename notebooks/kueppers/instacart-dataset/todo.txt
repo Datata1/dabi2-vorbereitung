@@ -1,0 +1,3 @@
+- create sqlite database 
+- implement SCD and delta load with sql scripts
+- use pandas to achieve that
