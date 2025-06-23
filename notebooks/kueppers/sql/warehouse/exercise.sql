@@ -1,1 +1,0 @@
--- TODO: practise delta load and SCD on exercise database
